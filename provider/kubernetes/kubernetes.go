@@ -219,7 +219,7 @@ func (p *Provider) loadIngresses(k8sClient Client) (*types.Configuration, error)
 					}
 				}
 
-				rule := getRuleForPath(pa, i)
+				rule := getDefaultRule(i) + getRuleForPath(pa, i)
 				if rule != "" {
 					templateObjects.Frontends[r.Host+pa.Path].Routes[pa.Path] = types.Route{
 						Rule: rule,
@@ -313,6 +313,14 @@ func (p *Provider) loadIngresses(k8sClient Client) (*types.Configuration, error)
 		}
 	}
 	return &templateObjects, nil
+}
+
+func getDefaultRule(i *v1beta1.Ingress) string {
+	defRule := i.Annotations["traefik.frontend.rule.default"]
+	if defRule == "" {
+		return ""
+	}
+	return defRule + ";"
 }
 
 func getRuleForPath(pa v1beta1.HTTPIngressPath, i *v1beta1.Ingress) string {
